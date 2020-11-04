@@ -1,0 +1,14 @@
+# Color codes for compilation output from acc on HP, for use with colorize script
+# Warnings
+yellow ^Warning [0-9]+:
+yellow line [0-9]+: [Ww]arning
+# Errors
+# Compile error:
+red ^Error [0-9]+:
+red line [0-9]+: [Ee]rror [0-9]+:
+# Linking error:
+#red : undefined reference
+# Gmake error:
+red \*\*\*.*[Ee]rror
+red \*\*\* No rule to make target
+red /usr/ccs/bin/ld: Unsatisfied symbols:

@@ -1,0 +1,19 @@
+# Color codes for compilation output from gcc, for use with colorize script
+# Informational
+blue : In member function
+# Warnings
+yellow : [Ww]arning:
+# Errors
+# Compile error:
+red : error
+red : syntax error
+red : no matching function for call to
+red : no .+ member function declared
+# Linking error:
+red : undefined reference
+# Gmake error:
+red \*\*\*.*[Ee]rror
+red \*\*\* No rule to make target
+red PLS-S-
+red PCC-S-02201
+red PCC-F-02102

@@ -1,0 +1,112 @@
+#!/usr/bin/env python
+# Tool to colorize output based on regular expressions, designed to work both
+# with ANSI escape sequences and with HTML color codes. Data to colorize is input
+# on STDIN, and result is output on STDOUT
+
+# Usage:
+# colorize <ansi|html> <color config filename>
+
+import sys
+import re
+
+html_escape_table = {
+    "&": "&amp;",
+    '"': "&quot;",
+    "'": "&apos;",
+    ">": "&gt;",
+    "<": "&lt;"
+    }
+
+def htmlEscape(text):
+    """Produce entities within text."""
+    try:
+        result = '"".join(html_escape_table.get(c,c) for c in text)'
+    except SyntaxError:
+        print "HTML mode not supported prior to Python 2.4"
+        sys.exit(1)
+    return result
+
+def printHtmlHeader():
+    print '''
+<html>
+<head>
+    <style text="text/css">
+    body {
+        font-family:    Monaco,
+                        "Bitstream Vera Sans Mono",
+                        "Lucida Console",
+                        Terminal,
+                        monospace;
+        font-size:      14;
+    }
+    </style>
+</head>
+<body>
+<pre>'''
+
+
+def printHtmlFooter():
+    print '''
+</pre>
+</body>
+</html>
+'''
+
+escape = '\033'
+
+colors = {'black':  {'ansi': {'begin': escape + '[0;30m', 'end': escape + '[0m'},
+                     'html': {'begin': '<font color=\'black\'>', 'end': '</font>'}},
+          'red':    {'ansi': {'begin': escape + '[0;31m', 'end': escape + '[0m'},
+                     'html': {'begin': '<font color=\'red\'>', 'end': '</font>'}},
+          'green':  {'ansi': {'begin': escape + '[0;32m', 'end': escape + '[0m'},
+                     'html': {'begin': '<font color=\'green\'>', 'end': '</font>'}},
+          'yellow': {'ansi': {'begin': escape + '[0;33m', 'end': escape + '[0m'},
+                     'html': {'begin': '<font color=\'#C9960C\'>', 'end': '</font>'}},
+          'blue':   {'ansi': {'begin': escape + '[0;34m', 'end': escape + '[0m'},
+                     'html': {'begin': '<font color=\'blue\'>', 'end': '</font>'}},
+          'purple': {'ansi': {'begin': escape + '[0;35m', 'end': escape + '[0m'},
+                     'html': {'begin': '<font color=\'purple\'>', 'end': '</font>'}},
+          'cyan':   {'ansi': {'begin': escape + '[0;36m', 'end': escape + '[0m'},
+                     'html': {'begin': '<font color=\'cyan\'>', 'end': '</font>'}},
+          'white':  {'ansi': {'begin': escape + '[0;37m', 'end': escape + '[0m'},
+                     'html': {'begin': '<font color=\'white\'>', 'end': '</font>'}}}
+
+if sys.argv[1] in ('html', 'ansi'):
+    format = sys.argv[1]
+else:
+    sys.exit(-1)
+
+rules = {}
+
+# Read color regular expressions
+configFile = open(sys.argv[2])
+for line in configFile:
+    if line[0] == '#':
+        continue
+    # Read each line - first word is colour ID, rest of line is regular expression
+    color, regex = line.strip().split(None, 1)
+    rules[regex] = color
+
+configFile.close()
+
+if format == 'html':
+    printHtmlHeader()
+
+for line in sys.stdin:
+    # Clean up Unicode characters
+    line = line.replace('\xe2\x80\x98', "'").replace('\xe2\x80\x99',"'")
+
+    for regex, color in rules.items():
+        if re.search(regex, line):
+            if format == 'html':
+                line = htmlEscape(line)
+            print colors[color][format]['begin'] + line.strip() + colors[color][format]['end']
+            break
+    else:
+        if format == 'html':
+            line = htmlEscape(line)
+        print line.strip()
+
+if format == 'html':
+    printHtmlFooter()
+
